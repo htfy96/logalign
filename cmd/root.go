@@ -69,6 +69,8 @@ var rootCmd = &cobra.Command{
 'logalign view' outputs log lines based on previously built corpus.
 
 Some flags (e.g., corpus_dir, cache_dir, loglevel, source_column_width, min_matched_ratio, skip_print_argument_expr) can be set via $XDG_CONFIG_HOME/.logalign.yaml or ~/.logalign.yaml.
+
+Set 'CLICOLOR_FORCE' or 'NO_COLOR' to force color output regardless of the terminal.
 `,
 
 	Run: func(cmd *cobra.Command, args []string) {

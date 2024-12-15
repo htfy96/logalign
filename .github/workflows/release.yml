@@ -15,14 +15,25 @@ jobs:
     name: release linux/amd64
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: wangyoucao577/go-release-action@v1
-      with:
-        github_token: ${{ secrets.GITHUB_TOKEN }}
-        goos: linux
-        goarch: amd64
-        goversion: "1.23"
-        extra_files: LICENSE README.md
-        release_name: canary
-        pre_command: "apt-get install -yy libpcre2-dev  libhyperscan-dev"
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: "1.23"
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -yy libpcre2-dev  libhyperscan-dev
+      - name: Build
+        run: go build -v ./...
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            logalign
+            LICENSE
+            README.md
+          prerelease: true
+          name: canary
+          make_latest: true
         

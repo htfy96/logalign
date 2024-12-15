@@ -12,6 +12,7 @@ import (
 
 	"github.com/pelletier/go-toml/v2"
 	"github.com/phuslu/log"
+	"github.com/schollz/progressbar/v3"
 	sitter "github.com/smacker/go-tree-sitter"
 )
 
@@ -379,10 +380,12 @@ func BuildCorpusFromRepo(repoRoot string) (CorpusFile, error) {
 	if err != nil {
 		return CorpusFile{}, fmt.Errorf("error collecting source files: %w", err)
 	}
+	pbar := progressbar.Default(int64(len(files)))
 	completeChan := make(chan []LogCall)
 	for _, file := range files {
 		go func(filePath string) {
 			logCalls, err := extractLogCalls(repoRoot, filePath, logCallDefinitionFile.Project, logCallDefinitionFile.Definitions)
+			pbar.Add(1)
 			if err != nil {
 				log.Error().Msgf("Error extracting log calls from file %s: %v", filePath, err)
 				completeChan <- []LogCall{}

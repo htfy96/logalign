@@ -63,15 +63,17 @@ func initFromGlobalConfig() {
 var rootCmd = &cobra.Command{
 	Use:   "logalign {corpus | view} [flags...]",
 	Short: "Annotate logs with links to their definitions and arguments",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Long: `A command-line tool to extract log definitions from sources, and annotate log lines with links to their definitions and arguments.
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+'logalign corpus' builds and maintains a corpus of log calls from different projects.
+'logalign view' outputs log lines based on previously built corpus.
+
+Some flags (e.g., corpus_dir, loglevel, source_column_width, min_matched_ratio, skip_print_argument_expr) can be set via $XDG_CONFIG_HOME/.logalign.yaml or ~/.logalign.yaml.
+`,
 
 	Run: func(cmd *cobra.Command, args []string) {
-		log.Info().Msgf("corpus path: %s", internal.CorpusDir)
+		println("Please specify a subcommand for logalign operations.")
+		os.Exit(1)
 	},
 }
 
@@ -116,6 +118,7 @@ func initConfig() {
 
 		// Search config in home directory with name ".logalign" (without extension).
 		viper.AddConfigPath(home)
+		viper.AddConfigPath(xdg.ConfigHome + "/logalign")
 		viper.SetConfigType("yaml")
 		viper.SetConfigName(".logalign")
 	}

@@ -33,6 +33,7 @@ jobs:
             logalign
             LICENSE
             README.md
+          tag_name: canary
           prerelease: true
           name: canary
           make_latest: true

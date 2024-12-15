@@ -6,11 +6,11 @@ LogAlign is a command-line tool to annotate log lines with links to their defini
 
 ## Usage
 
-## Dependency
+### Dependency
 
 This tool depends on `libpcre2` and `libhyperscan5` to run. Install them from your system's package manager.
 
-## Command-line Usage
+### Command-line Usage
 
 First, users need to build a **corpus** from source files to extract all relevant log calls. This guide uses [openssh](https://github.com/openssh/openssh-portable) as an example.
 

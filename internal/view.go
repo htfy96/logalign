@@ -48,7 +48,7 @@ func (vc ViewConfig) Validate() error {
 	if vc.SourceColumnWidth < 0 {
 		return fmt.Errorf("source_column_width must be non-negative")
 	}
-	if len(vc.StartCharPos) > 0 && vc.StartPos != 0 {
+	if len(vc.StartCharPos) > 0 && vc.StartPos > 1 {
 		return fmt.Errorf("cannot use both start_pos and start_char_pos together")
 	}
 	if len(vc.StartCharPos) > 0 {

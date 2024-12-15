@@ -109,13 +109,13 @@ func NewViewer(config ViewConfig, corpus Corpus) (*Viewer, error) {
 				if err != nil {
 					return nil, fmt.Errorf("failed to parse printf-like format string %q from %s.%d : %s", call.FormatString, project, i, err)
 				}
-				compiled, err := pcre2.CompileJIT(parsed.Regex, 0, pcre2.JIT_COMPLETE)
+				compiled, err := pcre2.CompileJIT(parsed.Regex+"$", 0, pcre2.JIT_COMPLETE)
 				if err != nil {
 					return nil, fmt.Errorf("failed to compile regex for %s: %s", parsed.Regex, err)
 				}
 				compiledRegex[LogCallRef{Project: project, CallIndex: i}] = compiled
 
-				hsPat := hs.NewPattern(parsed.HyperScanRegex, 0)
+				hsPat := hs.NewPattern(parsed.HyperScanRegex+"$", 0)
 				if hsPat == nil {
 					return nil, fmt.Errorf("failed to create hyperscan pattern: %s", parsed.HyperScanRegex)
 				}

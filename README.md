@@ -6,6 +6,8 @@ LogAlign is a command-line tool to annotate log lines with links to their defini
 
 ## Usage
 
+Download the latest linux-amd64 canary build from [Release](https://github.com/htfy96/logalign/releases/tag/canary).
+
 ### Dependency
 
 This tool depends on `libpcre2` and `libhyperscan5` to run. Install them from your system's package manager.

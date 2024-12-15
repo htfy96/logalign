@@ -25,13 +25,13 @@ jobs:
           sudo apt-get install -yy libpcre2-dev  libhyperscan-dev
       - name: Build
         run: go build -v ./... && go build -v .
+      - name: Release build artifacts
+        run: zip -r logalign-linux-amd64.zip logalign LICENSE README.md
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            logalign
-            LICENSE
-            README.md
+            logalign-linux-amd64.zip
           tag_name: canary
           prerelease: true
           name: canary

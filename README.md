@@ -69,7 +69,7 @@ query = """
     \")\"
   )
 )"""
-# language to run this query. Currently only supports c or cpp
+# language to run this query. Currently supports c,cpp,java,golang,javascript,python,typescript
 language = 'c'
 syntax = 'printflike'
 # A template string to link to the source at {file} {line}

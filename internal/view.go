@@ -2,7 +2,9 @@ package internal
 
 import (
 	"fmt"
+	"hash/fnv"
 	"os"
+	"path/filepath"
 	"regexp/syntax"
 	"slices"
 	"strconv"
@@ -12,6 +14,7 @@ import (
 	hs "github.com/flier/gohs/hyperscan"
 	"github.com/muesli/termenv"
 	"github.com/phuslu/log"
+	"github.com/spf13/viper"
 )
 
 type ViewConfig struct {
@@ -86,6 +89,45 @@ func (v *Viewer) getLogCallFromRef(lcRef LogCallRef) *LogCall {
 	return &calls[lcRef.CallIndex]
 }
 
+func buildOrLoadCachedHSPatternsDB(patterns []*hs.Pattern) (hs.BlockDatabase, error) {
+	cacheDir := viper.GetString("cache_dir")
+	if err := os.MkdirAll(cacheDir, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create cache directory: %w", err)
+	}
+	hash := fnv.New64()
+	hash.Write([]byte("HSPATV1"))
+	for _, pattern := range patterns {
+		hash.Write([]byte(pattern.Expression))
+	}
+	cachePath := filepath.Join(cacheDir, fmt.Sprintf("%x.hsdb", hash.Sum64()))
+	if _, err := os.Stat(cachePath); os.IsNotExist(err) {
+		db, err := hs.NewBlockDatabase(patterns...)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create HS block database: %w", err)
+		}
+		serialized, err := db.Marshal()
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal HS block database: %w", err)
+		}
+		err = os.WriteFile(cachePath, serialized, 0644)
+		if err != nil {
+			return nil, fmt.Errorf("failed to write HS block database cache at %s: %w", cachePath, err)
+		}
+		log.Info().Msgf("Created HS block database cache at %s", cachePath)
+		return db, nil
+	} else {
+		serialized, err := os.ReadFile(cachePath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read HS block database cache %s: %w", cachePath, err)
+		}
+		db, err := hs.UnmarshalBlockDatabase(serialized)
+		if err != nil {
+			return nil, fmt.Errorf("failed to load HS block database from cache %s: %w", cachePath, err)
+		}
+		return db, nil
+	}
+}
+
 func NewViewer(config ViewConfig, corpus Corpus) (*Viewer, error) {
 	compiledRegex := make(map[LogCallRef]*pcre2.Regexp, 0)
 
@@ -150,7 +192,7 @@ func NewViewer(config ViewConfig, corpus Corpus) (*Viewer, error) {
 		}
 	}
 
-	db, err := hs.NewBlockDatabase(hsPatterns...)
+	db, err := buildOrLoadCachedHSPatternsDB(hsPatterns)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create hyperscan block database: %s", err)
 	}

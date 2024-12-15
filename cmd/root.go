@@ -68,7 +68,7 @@ var rootCmd = &cobra.Command{
 'logalign corpus' builds and maintains a corpus of log calls from different projects.
 'logalign view' outputs log lines based on previously built corpus.
 
-Some flags (e.g., corpus_dir, loglevel, source_column_width, min_matched_ratio, skip_print_argument_expr) can be set via $XDG_CONFIG_HOME/.logalign.yaml or ~/.logalign.yaml.
+Some flags (e.g., corpus_dir, cache_dir, loglevel, source_column_width, min_matched_ratio, skip_print_argument_expr) can be set via $XDG_CONFIG_HOME/.logalign.yaml or ~/.logalign.yaml.
 `,
 
 	Run: func(cmd *cobra.Command, args []string) {
@@ -96,6 +96,8 @@ func init() {
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.logalign.yaml)")
 	rootCmd.PersistentFlags().String("corpus_dir", "", "corpus directory (default is $XDG_STATE_HOME/logalign)")
 	viper.BindPFlag("corpus_dir", rootCmd.PersistentFlags().Lookup("corpus_dir"))
+	rootCmd.PersistentFlags().String("cache_dir", "", "cache directory (default is $XDG_CACHE_HOME/logalign)")
+	viper.BindPFlag("cache_dir", rootCmd.PersistentFlags().Lookup("cache_dir"))
 	rootCmd.PersistentFlags().String("loglevel", "info", "log level (trace, debug, info, warn, error, fatal, panic)")
 	viper.BindPFlag("loglevel", rootCmd.PersistentFlags().Lookup("loglevel"))
 
@@ -107,6 +109,7 @@ func init() {
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
 	viper.SetDefault("corpus_dir", xdg.StateHome+"/logalign")
+	viper.SetDefault("cache_dir", xdg.CacheHome+"/logalign")
 	viper.SetDefault("loglevel", "warn")
 	if cfgFile != "" {
 		// Use config file from the flag.

@@ -81,9 +81,14 @@ var viewCmd = &cobra.Command{
 		// handlers
 		for i := 0; i < 32; i++ {
 			go func() {
+				scratch, err := view.AllocScratch()
+				if err != nil {
+					log.Error().Msgf("error creating scratch: %v", err)
+					return
+				}
 				for {
 					line := inputQueue.WaitToPop()
-					processed, err := view.ProcessLine(line.Content)
+					processed, err := view.ProcessLine(line.Content, scratch)
 					if err != nil {
 						completionQueue.Push(line.Line, fmt.Sprintf("Line %d: %v", line.Line, err))
 						continue

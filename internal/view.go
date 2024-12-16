@@ -247,7 +247,11 @@ func (v *Viewer) buildRefColumn(file string, line int, link string) string {
 	return termenv.Hyperlink(link, res.String())
 }
 
-func (v *Viewer) ProcessLine(line string) (string, error) {
+func (v *Viewer) AllocScratch() (*hs.Scratch, error) {
+	return hs.NewScratch(v.CompiledAllRegex)
+}
+
+func (v *Viewer) ProcessLine(line string, scratch *hs.Scratch) (string, error) {
 	startPos := 0
 	if v.Config.StartPos > 0 {
 		startPos = v.Config.StartPos - 1
@@ -270,12 +274,6 @@ func (v *Viewer) ProcessLine(line string) (string, error) {
 	refFile := ""
 	refLine := 0
 	refLink := ""
-
-	scratch, err := hs.NewScratch(v.CompiledAllRegex)
-	if err != nil {
-		return "", fmt.Errorf("failed to create hyperscan scratch: %s", err)
-	}
-	defer scratch.Free()
 
 	type Match struct {
 		LcRef    LogCallRef

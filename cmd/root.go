@@ -18,6 +18,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"runtime/pprof"
 
 	"github.com/htfy96/logalign/internal"
 
@@ -55,6 +56,16 @@ func initFromGlobalConfig() {
 	internal.GlobalCorpus, err = internal.ReadCorpus()
 	if err != nil {
 		log.Fatal().Msgf("error reading corpus: %v", err)
+	}
+
+	if cpuProfile, err := rootCmd.PersistentFlags().GetString("cpuprofile"); err != nil {
+		log.Fatal().Msgf("error parsing cpuprofile flag: %v", err)
+	} else if cpuProfile != "" {
+		f, err := os.Create(cpuProfile)
+		if err != nil {
+			log.Fatal().Msgf("error creating cpu profile file: %s", err)
+		}
+		pprof.StartCPUProfile(f)
 	}
 
 }
@@ -103,6 +114,8 @@ func init() {
 	rootCmd.PersistentFlags().String("loglevel", "info", "log level (trace, debug, info, warn, error, fatal, panic)")
 	viper.BindPFlag("loglevel", rootCmd.PersistentFlags().Lookup("loglevel"))
 
+	rootCmd.PersistentFlags().String("cpuprofile", "", "write cpu profile to file")
+
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
@@ -110,6 +123,7 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
+
 	viper.SetDefault("corpus_dir", xdg.StateHome+"/logalign")
 	viper.SetDefault("cache_dir", xdg.CacheHome+"/logalign")
 	viper.SetDefault("loglevel", "warn")

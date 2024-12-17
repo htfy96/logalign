@@ -66,13 +66,13 @@ var viewCmd = &cobra.Command{
 
 		type InputLine struct {
 			Line    int
-			Content string
+			Content *string
 		}
 
 		currLine := atomic.NewInt64(0)
 		inputQueue := internal.NewSafeQueue[InputLine]()
 
-		completionQueue := internal.NewOrderPreservingCompletionQueue[string]()
+		completionQueue := internal.NewOrderPreservingCompletionQueue[*string]()
 		completionChan := completionQueue.GetCompletionChan()
 		terminationChan := make(chan int)
 
@@ -88,12 +88,13 @@ var viewCmd = &cobra.Command{
 				}
 				for {
 					line := inputQueue.WaitToPop()
-					processed, err := view.ProcessLine(line.Content, scratch)
+					processed, err := view.ProcessLine(*line.Content, scratch)
 					if err != nil {
-						completionQueue.Push(line.Line, fmt.Sprintf("Line %d: %v", line.Line, err))
+						errStr := fmt.Sprintf("Error processing line %d: %v", line.Line, err)
+						completionQueue.Push(line.Line, &errStr)
 						continue
 					}
-					completionQueue.Push(line.Line, processed)
+					completionQueue.Push(line.Line, &processed)
 				}
 			}()
 		}
@@ -113,7 +114,7 @@ var viewCmd = &cobra.Command{
 				oldCurrLine := currLine.Add(1) - 1
 
 				inputQueue.Push(InputLine{
-					Content: line,
+					Content: &line,
 					Line:    int(oldCurrLine),
 				})
 			}
@@ -124,7 +125,7 @@ var viewCmd = &cobra.Command{
 		for {
 			select {
 			case line := <-completionChan:
-				println(line)
+				println(*line)
 				outputLine++
 			case <-terminationChan:
 				terminated = true

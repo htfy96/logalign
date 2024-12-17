@@ -48,7 +48,7 @@ func NewOrderPreservingCompletionQueue[T any]() *OrderPreservingCompletionQueue[
 		results:        make(map[int]T),
 		mu:             mu,
 		nextID:         0,
-		completionChan: make(chan T, 64),
+		completionChan: make(chan T, 256),
 	}
 }
 
@@ -56,6 +56,9 @@ func (q *OrderPreservingCompletionQueue[T]) Push(idx int, item T) {
 	q.mu.Lock()
 	defer q.mu.Unlock()
 	q.results[idx] = item
+	if idx != q.nextID {
+		return
+	}
 	for {
 		if item, ok := q.results[q.nextID]; ok {
 			delete(q.results, q.nextID)

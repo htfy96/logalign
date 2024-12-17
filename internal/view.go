@@ -279,14 +279,29 @@ func (v *Viewer) ProcessLine(line string, scratch *hs.Scratch) (string, error) {
 		LcRef    LogCallRef
 		From, To uint64
 	}
-	matches := make([]Match, 0)
+	type MatchKey struct {
+		Id   int
+		From uint64
+	}
+	matches := make(map[MatchKey]Match)
 	handler := hs.MatchHandler(func(id uint, from, to uint64, flags uint, context interface{}) error {
 		log.Trace().Msgf("Got hyperscan match from %d: %d-%d. LcRef: %v", id, from, to, v.CompiledAllPatternIDToLogCallMap[int(id)])
-		matches = append(matches, Match{
+		if to-from < uint64(v.Config.MinMatchChars) || to-from < uint64(v.Config.MinMatchedRatio*float64(len(lineToMatch))) {
+			return nil
+		}
+		if oldMatch, exists := matches[MatchKey{Id: int(id), From: from}]; exists {
+			if oldMatch.To > to {
+				return nil
+			}
+		}
+		matches[MatchKey{
+			Id:   int(id),
+			From: from,
+		}] = Match{
 			LcRef: v.CompiledAllPatternIDToLogCallMap[int(id)],
 			From:  from,
 			To:    to,
-		})
+		}
 		return nil
 	})
 	if err := v.CompiledAllRegex.Scan([]byte(lineToMatch), scratch, handler, nil); err != nil {
@@ -296,8 +311,8 @@ func (v *Viewer) ProcessLine(line string, scratch *hs.Scratch) (string, error) {
 		bestMatchedLiterals := 0
 		bestMatchedTotal := 0
 		bestMatchedWordLiterals := 0
-		bestMatched := -1
-		for i, match := range matches {
+		bestMatched := MatchKey{}
+		for key, match := range matches {
 			regex := v.CompiledRegex[match.LcRef]
 			matcher := regex.MatcherString(lineToMatch, 0)
 			defer matcher.Free()
@@ -338,7 +353,7 @@ func (v *Viewer) ProcessLine(line string, scratch *hs.Scratch) (string, error) {
 			if totalMatchedWordLiterals > bestMatchedWordLiterals ||
 				(totalMatchedWordLiterals == bestMatchedWordLiterals && totalMatchedLiterals > bestMatchedLiterals) ||
 				(totalMatchedWordLiterals == bestMatchedWordLiterals && totalMatchedLiterals == bestMatchedLiterals && totalMatched > bestMatchedTotal) {
-				bestMatched = i
+				bestMatched = key
 				bestMatchedWordLiterals = totalMatchedWordLiterals
 				bestMatchedLiterals = totalMatchedLiterals
 				bestMatchedTotal = totalMatched

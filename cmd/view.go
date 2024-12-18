@@ -68,12 +68,12 @@ var viewCmd = &cobra.Command{
 			Line    int
 			Content *string
 		}
+		type OutputLine InputLine
 
 		currLine := atomic.NewInt64(0)
 		inputQueue := internal.NewSafeQueue[InputLine]()
 
-		completionQueue := internal.NewOrderPreservingCompletionQueue[*string]()
-		completionChan := completionQueue.GetCompletionChan()
+		completionChan := make(chan OutputLine, 64)
 		terminationChan := make(chan int)
 
 		outputLine := 0
@@ -91,10 +91,10 @@ var viewCmd = &cobra.Command{
 					processed, err := view.ProcessLine(*line.Content, scratch)
 					if err != nil {
 						errStr := fmt.Sprintf("Error processing line %d: %v", line.Line, err)
-						completionQueue.Push(line.Line, &errStr)
+						completionChan <- OutputLine{line.Line, &errStr}
 						continue
 					}
-					completionQueue.Push(line.Line, &processed)
+					completionChan <- OutputLine{line.Line, &processed}
 				}
 			}()
 		}
@@ -122,11 +122,21 @@ var viewCmd = &cobra.Command{
 		}()
 
 		terminated := false
+		outputMap := make(map[int]*string)
+		nextToWrite := 0
 		for {
 			select {
-			case line := <-completionChan:
-				println(*line)
+			case ol := <-completionChan:
+				outputMap[ol.Line] = ol.Content
 				outputLine++
+				for {
+					if s, ok := outputMap[nextToWrite]; ok {
+						fmt.Printf("%s\n", *s)
+						nextToWrite++
+					} else {
+						break
+					}
+				}
 			case <-terminationChan:
 				terminated = true
 			}

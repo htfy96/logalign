@@ -3,9 +3,9 @@ module github.com/htfy96/logalign
 go 1.23.4
 
 require (
-	github.com/Jemmic/go-pcre2 v0.0.0-20190111114109-bd52ad5f7098
 	github.com/adrg/xdg v0.5.3
 	github.com/flier/gohs v1.2.3
+	github.com/htfy96/go-pcre2/v2 v2.0.0-20241218023706-27cf5b780493
 	github.com/muesli/termenv v0.15.2
 	github.com/pelletier/go-toml/v2 v2.2.3
 	github.com/phuslu/log v1.0.113

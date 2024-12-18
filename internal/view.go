@@ -10,8 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	pcre2 "github.com/Jemmic/go-pcre2"
 	hs "github.com/flier/gohs/hyperscan"
+	pcre2 "github.com/htfy96/go-pcre2/v2"
 	"github.com/muesli/termenv"
 	"github.com/phuslu/log"
 	"github.com/spf13/viper"

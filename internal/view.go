@@ -267,8 +267,8 @@ func (v *Viewer) ProcessLine(line string, scratch *hs.Scratch) (string, error) {
 			cnt--
 		}
 	}
-	lineToMatch := line[startPos:]
-	prefix := line[:startPos]
+	lineToMatch := line[min(startPos, len(line)):]
+	prefix := line[:min(startPos, len(line))]
 
 	processedMatched := lineToMatch
 	refFile := ""

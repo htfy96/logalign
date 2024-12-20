@@ -361,7 +361,9 @@ func (v *Viewer) ProcessLine(line string, scratch *hs.Scratch) (string, error) {
 
 		}
 		if bestMatchedTotal == 0 {
-			log.Warn().Msgf("No pcre2 match found for line despite that Hyperscan think so: %s", lineToMatch)
+			if len(matches) > 0 {
+				log.Warn().Msgf("No pcre2 match found for line despite that Hyperscan think so: %s", lineToMatch)
+			}
 		} else {
 			bestMatchedRecord := matches[bestMatched]
 			logCall := v.getLogCallFromRef(bestMatchedRecord.LcRef)

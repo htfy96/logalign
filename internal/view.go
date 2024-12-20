@@ -253,7 +253,7 @@ func (v *Viewer) AllocScratch() (*hs.Scratch, error) {
 
 func (v *Viewer) ProcessLine(line string, scratch *hs.Scratch) (string, error) {
 	startPos := 0
-	if v.Config.StartPos > 0 {
+	if v.Config.StartPos > 1 {
 		startPos = v.Config.StartPos - 1
 	} else if len(v.Config.StartCharPos) > 0 {
 		char, cnt := v.Config.MustGetStartCharPos()
